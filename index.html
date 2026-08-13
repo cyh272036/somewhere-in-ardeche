@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somewhere in Ardèche | MARITHÉ FRANÇOIS GIRBAUD</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f4f1ec;
+    color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+  img { display: block; width: 100%; height: auto; }
+
+  .page { width: 100%; margin: 0 auto; background: #fff;}
+
+  section { position: relative; }
+
+  /* 상단/하단 브랜드 컬러 바 */
+  .bar { background: #321d18; }
+
+  /* 3열 / 2열 그리드 */
+  .row-3-wrap { position: relative; }
+  .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top : 5px; margin-bottom : 5px}
+  .row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top : 5px; margin-bottom : 5px}
+
+  /* 모바일 슬라이드에서만 노출되는 작은 화살표 (데스크톱 그리드에서는 숨김) */
+  .row-3-nav { display: none; }
+
+  /* 3단 클로즈업 호버 컬러 오버레이 + 텍스트 */
+  .row-3-item { position: relative; overflow: hidden; }
+  .row-3-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: #766956;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    cursor: pointer;
+  }
+  .row-3-item:hover::after { opacity: 0.7;}
+
+  .row-3-caption {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .row-3-item:hover .row-3-caption { opacity: 1; }
+  .row-3-title { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.25; }
+  .row-3-desc { margin: 0; font-size: 13px; line-height: 1.5; opacity: 0.9; }
+
+  /* ===== 무드 섹션 (왼쪽 가방 고정 + 오른쪽 Swiper, 여백을 넉넉히 두고 양끝 배치) ===== */
+  .mood-section { background: #e9ddcb; padding: 100px 150px; }
+  .mood-grid { position: relative; }
+  .mood-bag { max-width: 420px; }
+
+  .mood-swiper { position: absolute; top: 0; right: 0; width: 100%; max-width: 450px; aspect-ratio: 3 / 2; overflow: hidden; }
+  .mood-swiper .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ===== 핫스팟 (+ 버튼, 순수 CSS: radio + 인접 선택자) ===== */
+  .hotspot-reset-input { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+  .hotspot-section { line-height: 0; }
+
+  .hotspot {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
+  }
+
+  .hotspot-toggle {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 11;
+  }
+
+  .hotspot-btn {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 10;
+  }
+  .hotspot-btn::before { content: "+"; }
+  .hotspot-toggle:checked + .hotspot-btn::before { content: "\2715"; font-size: 13px; }
+
+  .hotspot-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: none;
+  }
+  .hotspot-toggle:checked ~ .hotspot-overlay { display: block; }
+
+  .hotspot-popup {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    width: 260px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 200;
+    overflow: hidden;
+  }
+  .hotspot-toggle:checked ~ .hotspot-popup {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+
+  /* 이미지 오른쪽에 가까운 점은 팝업을 오른쪽 정렬로 */
+  .hotspot--right .hotspot-popup { left: auto; right: 0; transform: translateY(8px); }
+  .hotspot--right .hotspot-toggle:checked ~ .hotspot-popup { transform: translateY(0); }
+
+  .popup-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-size: 380% 380%;
+    background-repeat: no-repeat;
+  }
+  .popup-info { padding: 14px 16px 16px; }
+  .popup-brand {
+    margin: 0 0 4px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: #8a8a8a;
+    text-transform: uppercase;
+  }
+  .popup-name { margin: 0 0 6px; font-size: 14px; color: #111; }
+  .popup-price { margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #c41e1e; }
+  .popup-link {
+    display: inline-block;
+    font-size: 12px;
+    text-decoration: none;
+    color: #111;
+    border-bottom: 1px solid #111;
+    padding-bottom: 2px;
+  }
+  .popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 13px;
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  @media (max-width: 640px) {
+    .hotspot-overlay { background: rgba(0, 0, 0, 0); transition: background 0.18s ease; }
+    .hotspot-toggle:checked ~ .hotspot-overlay { background: rgba(0, 0, 0, 0.4); }
+
+    .hotspot-popup,
+    .hotspot--right .hotspot-popup {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      top: auto;
+      width: auto;
+      transform: translateY(12px);
+    }
+    .hotspot-toggle:checked ~ .hotspot-popup,
+    .hotspot--right .hotspot-toggle:checked ~ .hotspot-popup {
+      transform: translateY(0);
+    }
+
+    /* 3단 클로즈업 → 1단 스와이프(CSS scroll-snap), 텍스트 상시 노출, 어두운 배경 제거 */
+    .row-3 {
+      display: flex;
+      grid-template-columns: none;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 0;
+      scrollbar-width: none;
+    }
+    .row-3::-webkit-scrollbar { display: none; }
+    .row-3-item { flex: 0 0 100%; scroll-snap-align: start; }
+    .row-3-item::after { content: none; }
+    .row-3-caption { opacity: 1; }
+
+    .row-3-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: rgba(0, 0, 0, 0.5);
+      font-size: 20px;
+      line-height: 1;
+      z-index: 2;
+      cursor: pointer;
+    }
+    .row-3-nav--prev { left: 8px; }
+    .row-3-nav--next { right: 8px; }
+
+    /* 핫스팟 + 버튼 모바일 축소 (위치 기준점은 그대로 유지) */
+    .hotspot { width: 20px; height: 20px; }
+    .hotspot-btn { font-size: 13px; box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15); }
+
+    /* 무드 섹션 모바일 여백 축소 + 슬라이드 이미지가 가방 컷 바로 뒤에 붙어서 노출 */
+    .mood-section { padding: 40px 20px; }
+    .mood-bag { max-width: none; }
+    .mood-swiper { position: relative; width: 100%; max-width: none; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 팝업을 모두 닫는 기본 상태(라디오). 오버레이/닫기 버튼이 이 id를 가리킴 -->
+<input type="radio" name="hotspot" id="hotspot-reset" class="hotspot-reset-input" checked hidden>
+
+<div class="page">
+
+  <!-- 타이틀 -->
+  <section>
+    <img src="img/GO_MAIN.jpg" alt="Somewhere in Ardèche">
+  </section>
+
+  <!-- 영상 섹션: 포스터 없이 영상 첫 프레임이 그대로 보이도록 처리 -->
+  <section>
+    <video controls playsinline preload="metadata" style="width:100%; display:block;">
+      <source src="video/ardeche-teaser.mp4" type="video/mp4">
+    </video>
+  </section>
+
+  <!-- 히어로 1: 옥상 테이블 컷 (핫스팟 2개) -->
+  <section class="hotspot-section">
+    <img src="img/GO_BIG_1.jpg" alt="체크 재킷 룩">
+
+    <div class="hotspot" style="--x:47%; --y:33%;">
+      <input type="radio" name="hotspot" id="dot-big1-1" class="hotspot-toggle">
+      <span class="hotspot-btn" aria-hidden="true"></span>
+      <label for="hotspot-reset" class="hotspot-overlay" aria-hidden="true"></label>
+      <div class="hotspot-popup">
+        <label for="hotspot-reset" class="popup-close" aria-label="닫기">&#10005;</label>
+        <div class="popup-thumb" style="background-image:url('img/GO_BIG_1.jpg'); background-position:47% 33%;"></div>
+        <div class="popup-info">
+          <p class="popup-brand">MARITHÉ FRANÇOIS GIRBAUD</p>
+          <p class="popup-name">체크 패턴 후드 아노락</p>
+          <p class="popup-price">₩298,000</p>
+          <a class="popup-link" href="#" target="_blank" rel="noopener">상품 보러가기 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot hotspot--right" style="--x:58%; --y:24%;">
+      <input type="radio" name="hotspot" id="dot-big1-2" class="hotspot-toggle">
+      <span class="hotspot-btn" aria-hidden="true"></span>
+      <label for="hotspot-reset" class="hotspot-overlay" aria-hidden="true"></label>
+      <div class="hotspot-popup">
+        <label for="hotspot-reset" class="popup-close" aria-label="닫기">&#10005;</label>
+        <div class="popup-thumb" style="background-image:url('img/GO_BIG_1.jpg'); background-position:58% 24%;"></div>
+        <div class="popup-info">
+          <p class="popup-brand">MARITHÉ FRANÇOIS GIRBAUD</p>
+          <p class="popup-name">베이직 크루넥 니트</p>
+          <p class="popup-price">₩138,000</p>
+          <a class="popup-link" href="#" target="_blank" rel="noopener">상품 보러가기 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 클로즈업 3컷 (모바일에서는 row-3가 가로 스와이프 트랙, 화살표는 row-3-wrap에 고정) -->
+  <section class="row-3-wrap">
+    <div class="row-3">
+      <div class="row-3-item">
+        <img src="img/GO_BIG_2_1.jpg" alt="클로즈업 1">
+        <div class="row-3-caption">
+          <p class="row-3-title">26FW<br>GO YOUN-JUNG</p>
+          <p class="row-3-desc">텍스트 설명입니다.<br>텍스트 설명입니다.</p>
+        </div>
+      </div>
+      <div class="row-3-item">
+        <img src="img/GO_BIG_2_2.jpg" alt="클로즈업 2">
+        <div class="row-3-caption">
+          <p class="row-3-title">26FW<br>GO YOUN-JUNG</p>
+          <p class="row-3-desc">텍스트 설명입니다.<br>텍스트 설명입니다.</p>
+        </div>
+      </div>
+      <div class="row-3-item">
+        <img src="img/GO_BIG_2_3.jpg" alt="클로즈업 3">
+        <div class="row-3-caption">
+          <p class="row-3-title">26FW<br>GO YOUN-JUNG</p>
+          <p class="row-3-desc">텍스트 설명입니다.<br>텍스트 설명입니다.</p>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="row-3-nav row-3-nav--prev" aria-label="이전 이미지" onclick="this.closest('.row-3-wrap').querySelector('.row-3').scrollBy({left:-this.closest('.row-3-wrap').querySelector('.row-3').clientWidth, behavior:'smooth'})">&#8249;</button>
+    <button type="button" class="row-3-nav row-3-nav--next" aria-label="다음 이미지" onclick="this.closest('.row-3-wrap').querySelector('.row-3').scrollBy({left:this.closest('.row-3-wrap').querySelector('.row-3').clientWidth, behavior:'smooth'})">&#8250;</button>
+  </section>
+
+  <!-- 무드 섹션: 가방 컷 고정 + 오른쪽은 다음 컷으로 부드럽게 슬라이드되는 Swiper -->
+  <section class="mood-section">
+    <div class="mood-grid">
+      <div class="mood-bag">
+        <img src="img/GO_MOOD_3.jpg" alt="크로스백">
+      </div>
+      <div class="swiper mood-swiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><img src="img/GO_MOOD_3_1.jpg" alt="레이어드 컷 1"></div>
+          <div class="swiper-slide"><img src="img/GO_MOOD_3-2.jpg" alt="레이어드 컷 2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 히어로 2: 암체어 컷 (핫스팟 3개) -->
+  <section class="hotspot-section">
+    <img src="img/GO_BIG_4.jpg" alt="스트라이프 후드 룩">
+
+    <div class="hotspot hotspot--right" style="--x:60%; --y:21%;">
+      <input type="radio" name="hotspot" id="dot-big4-1" class="hotspot-toggle">
+      <span class="hotspot-btn" aria-hidden="true"></span>
+      <label for="hotspot-reset" class="hotspot-overlay" aria-hidden="true"></label>
+      <div class="hotspot-popup">
+        <label for="hotspot-reset" class="popup-close" aria-label="닫기">&#10005;</label>
+        <div class="popup-thumb" style="background-image:url('img/GO_BIG_4.jpg'); background-position:60% 21%;"></div>
+        <div class="popup-info">
+          <p class="popup-brand">MARITHÉ FRANÇOIS GIRBAUD</p>
+          <p class="popup-name">스트라이프 후드 집업</p>
+          <p class="popup-price">₩189,000</p>
+          <a class="popup-link" href="#" target="_blank" rel="noopener">상품 보러가기 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot" style="--x:41%; --y:54%;">
+      <input type="radio" name="hotspot" id="dot-big4-2" class="hotspot-toggle">
+      <span class="hotspot-btn" aria-hidden="true"></span>
+      <label for="hotspot-reset" class="hotspot-overlay" aria-hidden="true"></label>
+      <div class="hotspot-popup">
+        <label for="hotspot-reset" class="popup-close" aria-label="닫기">&#10005;</label>
+        <div class="popup-thumb" style="background-image:url('img/GO_BIG_4.jpg'); background-position:41% 54%;"></div>
+        <div class="popup-info">
+          <p class="popup-brand">MARITHÉ FRANÇOIS GIRBAUD</p>
+          <p class="popup-name">와이드 밴딩 롱스커트</p>
+          <p class="popup-price">₩159,000</p>
+          <a class="popup-link" href="#" target="_blank" rel="noopener">상품 보러가기 &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot" style="--x:29%; --y:83%;">
+      <input type="radio" name="hotspot" id="dot-big4-3" class="hotspot-toggle">
+      <span class="hotspot-btn" aria-hidden="true"></span>
+      <label for="hotspot-reset" class="hotspot-overlay" aria-hidden="true"></label>
+      <div class="hotspot-popup">
+        <label for="hotspot-reset" class="popup-close" aria-label="닫기">&#10005;</label>
+        <div class="popup-thumb" style="background-image:url('img/GO_BIG_4.jpg'); background-position:29% 83%;"></div>
+        <div class="popup-info">
+          <p class="popup-brand">MARITHÉ FRANÇOIS GIRBAUD</p>
+          <p class="popup-name">스웨이드 로우탑 스니커즈</p>
+          <p class="popup-price">₩139,000</p>
+          <a class="popup-link" href="#" target="_blank" rel="noopener">상품 보러가기 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 클로즈업 2컷 -->
+  <section class="row-2">
+    <img src="img/GO_BIG_5_1.jpg" alt="클로즈업 4">
+    <img src="img/GO_BIG_5_2.jpg" alt="클로즈업 5">
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+  new Swiper(".mood-swiper", {
+    effect: "fade",
+    fadeEffect: { crossFade: true },
+    loop: true,
+    speed: 800,
+    autoplay: { delay: 3500, disableOnInteraction: false }
+  });
+</script>
+
+</body>
+</html>

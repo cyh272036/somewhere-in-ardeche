@@ -65,9 +65,9 @@
   /* ===== 무드 섹션 (왼쪽 가방 고정 + 오른쪽 Swiper, 여백을 넉넉히 두고 양끝 배치) ===== */
   .mood-section { background: #e9ddcb; padding: 100px 150px; }
   .mood-grid { position: relative; }
-  .mood-bag { max-width: 420px; }
+  .mood-bag { max-width: clamp(320px, 25vw, 560px); }
 
-  .mood-swiper { position: absolute; top: 0; right: 0; width: 100%; max-width: 450px; aspect-ratio: 3 / 2; overflow: hidden; }
+  .mood-swiper { position: absolute; top: 0; right: 0; width: 100%; max-width: clamp(320px, 27vw, 600px); aspect-ratio: 3 / 2; overflow: hidden; }
   .mood-swiper .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
 
   /* ===== 핫스팟 (+ 버튼, 순수 CSS: radio + 인접 선택자) ===== */
